@@ -78,7 +78,7 @@ contract FTokenShield is Ownable, MerkleTree {
   /**
   Stores verification keys (for the 'mint', 'transfer' and 'burn' computations).
   */
-  function registerVerificationKey(uint256[] calldata _vk, TransactionTypes _txType) external onlyOwner returns (bytes32) {
+  function registerVerificationKey(uint256[] calldata _vk, TransactionTypes _txType) external onlyOwner {
       // CAUTION: we do not prevent overwrites of vk's. Users must listen for the emitted event to detect updates to a vk.
       vks[uint(_txType)] = _vk;
 
@@ -115,8 +115,7 @@ contract FTokenShield is Ownable, MerkleTree {
       roots[latestRoot] = latestRoot; // and save the new root to the list of roots
 
       // Finally, transfer the fTokens from the sender to this contract
-      bool transferCheck = fToken.transferFrom(msg.sender, address(this), _value);
-      require(transferCheck, "Commitment cannot be minted");
+      fToken.transferFrom(msg.sender, address(this), _value);
 
       // gas measurement:
       gasUsedByShieldContract = gasUsedByShieldContract + gasCheckpoint - gasleft();
@@ -246,8 +245,7 @@ contract FTokenShield is Ownable, MerkleTree {
 
       //Finally, transfer the fungible tokens from this contract to the nominated address
       address payToAddress = address(_payTo); // we passed _payTo as a uint256, to ensure the packing was correct within the sha256() above
-      bool transferCheck = fToken.transfer(payToAddress, _value);
-      require(transferCheck, "Commitment cannot be burned");
+      fToken.transfer(payToAddress, _value);
 
       emit Burn(_nullifier);
 
